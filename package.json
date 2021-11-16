@@ -1,0 +1,47 @@
+{
+  "name": "projet",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve --port 4000",
+    "build": "vue-cli-service build",
+    "test": "./node_modules/.bin/cypress run",
+    "test:headed": "./node_modules/.bin/cypress run --headed",
+    "test:interactive": "./node_modules/.bin/cypress open"
+  },
+  "dependencies": {
+    "axios": "^0.24.0",
+    "core-js": "^3.19.0",
+    "cypress": "^9.0.0",
+    "vue": "^3.2.20",
+    "vue-router": "^4.0.11",
+    "vuex": "^4.0.2"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.14",
+    "@vue/cli-service": "~4.5.14",
+    "@vue/compiler-sfc": "^3.2.20",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^8.1.0",
+    "eslint-plugin-vue": "^7.20.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
