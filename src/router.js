@@ -1,17 +1,16 @@
-import { createWebHistory, createRouter } from "vue-router";
-import App from "@/App";
-
+import { createWebHistory, createRouter } from 'vue-router'
+import Game from './pages/Game.vue'
 const routes = [
-    {
-        path: "/",
-        name: "Home",
-        component: App, /* <--- Change it */
-    },
-];
+  {
+    path: '/',
+    name: 'Game',
+    component: Game,
+  },
+]
 
 const router = createRouter({
-    history: createWebHistory(),
-    routes,
-});
+  history: createWebHistory(),
+  routes,
+})
 
-export default router;
+export default router
