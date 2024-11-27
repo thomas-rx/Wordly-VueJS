@@ -1,7 +1,4 @@
 <template>
-  <div
-    class="flex flex-col items-center justify-start bg-gray-900 text-white h-screen overflow-hidden"
-  >
     <!-- En-tête -->
     <Header />
 
@@ -16,7 +13,6 @@
 
     <!-- Bas de page -->
     <Footer />
-  </div>
 </template>
 
 <script>

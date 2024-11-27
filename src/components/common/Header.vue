@@ -6,14 +6,15 @@
     <!-- Conteneur principal de l'en-tête -->
     <div class="bg-slate-800 flex items-center justify-center h-16 w-full">
       <div class="absolute left-4 hidden lg:flex space-x-3">
-        <button
-          class="bg-slate-700 text-center h-12 w-12 rounded-md flex items-center justify-center hover:bg-slate-700 hover:bg-opacity-80"
+        <router-link to="/">
+          <button
+            class="bg-slate-700 text-center h-12 w-12 rounded-md flex items-center justify-center hover:bg-slate-700 hover:bg-opacity-80"
         >
           <a id="share">
             <House />
           </a>
         </button>
-
+        </router-link>
         <button
           class="bg-slate-700 text-center h-12 w-12 rounded-md flex items-center justify-center hover:bg-slate-700 hover:bg-opacity-80"
         >
