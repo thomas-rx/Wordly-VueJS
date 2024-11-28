@@ -53,6 +53,15 @@ export default {
   },
   methods: {
     /**
+     * Return the value of a cell thanks to its ID
+     *
+     * @param cellID
+     *
+     */
+    getCellValue(cellID){
+      return this.cellValues[cellID]
+    },
+    /**
      * Sets the value and style of a cell in the word grid.
      *
      * @param {string} cellId - The ID of the cell to update.
@@ -112,69 +121,73 @@ export default {
      * @param {number} currentTry - The current attempt number.
      *
      */
-     verifyWord(targetWord, currentTry) {
-  if (currentTry < 1 || currentTry > this.rows) {
-    console.warn('Invalid current try number.')
-    return
-  }
+    verifyWord(targetWord, currentTry) {
+      if (currentTry < 1 || currentTry > this.rows) {
+        console.warn('Invalid current try number.')
+        return
+      }
 
-  if (targetWord.length !== this.columns) {
-    console.warn('Invalid target word length.')
-    return
-  }
+      if (targetWord.length !== this.columns) {
+        console.warn('Invalid target word length.')
+        return
+      }
 
-  const targetChars = targetWord.toUpperCase().split('');
+      const targetChars = targetWord.toUpperCase().split('')
 
-  console.log(this.cellValues);
-  const rowValues = [];
-  for (let col = 1; col <= this.columns; col++) {
-    const cellId = `cell-${currentTry}-${col}`;
-    const cellValue = this.cellValues[cellId]?.toUpperCase() || '';
-    rowValues.push({ value: cellValue, cellId });
-  }
+      console.log(this.cellValues)
+      const rowValues = []
+      for (let col = 1; col <= this.columns; col++) {
+        const cellId = `cell-${currentTry}-${col}`
+        const cellValue = this.cellValues[cellId]?.toUpperCase() || ''
+        rowValues.push({ value: cellValue, cellId })
+      }
 
+      if (rowValues.some((cell) => cell.value === '')) {
+        return
+      }
 
-  if (rowValues.some((cell) => cell.value === '')) {
-    return;
-  }
+      const matchedIndices = new Set()
 
-  const matchedIndices = new Set();
+      // First pass: Mark CORRECT letters
+      rowValues.forEach((cell, index) => {
+        if (cell.value === targetChars[index]) {
+          this.setCellValue(cell.cellId, cell.value, CellType.CORRECT)
+          matchedIndices.add(index)
+        }
+      })
 
-  // First pass: Mark CORRECT letters
-  rowValues.forEach((cell, index) => {
-    if (cell.value === targetChars[index]) {
-      this.setCellValue(cell.cellId, cell.value, CellType.CORRECT);
-      matchedIndices.add(index);
-    }
-  });
+      rowValues.forEach((cell, index) => {
+        if (matchedIndices.has(index)) {
+          return
+        }
 
-  rowValues.forEach((cell, index) => {
-    if (matchedIndices.has(index)) {
-      return;
-    }
+        if (
+          targetChars.includes(cell.value) &&
+          targetChars.findIndex(
+            (char, i) => char === cell.value && !matchedIndices.has(i),
+          ) >= 0
+        ) {
+          this.setCellValue(cell.cellId, cell.value, CellType.MISPLACED)
+          matchedIndices.add(index)
+        } else {
+          this.setCellValue(cell.cellId, cell.value, CellType.ABSENT)
+        }
+      })
 
-    if (
-      targetChars.includes(cell.value) &&
-      targetChars.findIndex((char, i) => char === cell.value && !matchedIndices.has(i)) >= 0
-    ) {
-      this.setCellValue(cell.cellId, cell.value, CellType.MISPLACED);
-      matchedIndices.add(index);
-    } else {
-      this.setCellValue(cell.cellId, cell.value, CellType.ABSENT);
-    }
-  });
-
-  // Check for win or loss after processing the row
-  setTimeout(() => {
-    if (rowValues.map((cell) => cell.value).join('') === targetWord.toUpperCase()) {
-      this.$emit('word-verified', true);
-      console.log('🎉 Winner!');
-    } else if (currentTry === this.rows) {
-      this.$emit('word-verified', false);
-      console.log('Game over!');
-    }
-  }, this.columns * 200);
-},
+      // Check for win or loss after processing the row
+      setTimeout(() => {
+        if (
+          rowValues.map((cell) => cell.value).join('') ===
+          targetWord.toUpperCase()
+        ) {
+          this.$emit('word-verified', true)
+          console.log('🎉 Winner!')
+        } else if (currentTry === this.rows) {
+          this.$emit('word-verified', false)
+          console.log('Game over!')
+        }
+      }, this.columns * 200)
+    },
   },
 }
 </script>
