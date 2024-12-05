@@ -58,8 +58,8 @@ export default {
      * @param cellID
      *
      */
-    getCellValue(cellID){
-      return this.cellValues[cellID]
+    getCellValue(cellID) {
+      return this.cellValues[cellID] || ''
     },
     /**
      * Sets the value and style of a cell in the word grid.
@@ -69,9 +69,9 @@ export default {
      * @param {CellType} [type=CellType.UNKNOWN] - The type of the cell, which determines its style.
      *
      */
-    setCellValue(cellId, value, type = CellType.UNKNOWN) {
+    setCellValue(cellId, value, type = CellType.UNKNOWN, animated = true) {
       const cellElement = document.getElementById(cellId)
-      const animationDuration = 200
+      const animationDuration = 200 * animated ? 200 : 0
 
       if (!cellElement) {
         console.warn(`Cellule ${cellId} introuvable.`)
@@ -85,9 +85,8 @@ export default {
         return
       }
 
-      const [row, col] = cellId.split('-').slice(1).map(Number)
-      const delay =
-        (row - 1) * this.columns * animationDuration + col * animationDuration
+      const [_, row, col] = cellId.split('-')
+      const delay = col * animationDuration
 
       setTimeout(() => {
         cellElement.animate(
@@ -114,14 +113,23 @@ export default {
         }, animationDuration + 10)
       }, delay)
     },
+
     /**
-     * Verifies the word entered by the user against the target word for the current attempt.
+     * Verifies the target word against the current attempt in the word grid.
      *
-     * @param {string} targetWord - The word that the user is trying to guess.
+     * @param {string} targetWord - The word to verify against.
      * @param {number} currentTry - The current attempt number.
+     * @param {boolean} [animated=false] - Whether to animate the cell updates.
      *
+     * @returns {void}
+     *
+     * @throws {Error} If the current try number is invalid.
+     * @throws {Error} If the target word length is invalid.
+     *
+     * @emits {Event} word-verified - Emits true if the word is correct, false otherwise.
      */
-    verifyWord(targetWord, currentTry) {
+
+    verifyWord(targetWord, currentTry, animated = false) {
       if (currentTry < 1 || currentTry > this.rows) {
         console.warn('Invalid current try number.')
         return
@@ -134,7 +142,6 @@ export default {
 
       const targetChars = targetWord.toUpperCase().split('')
 
-      console.log(this.cellValues)
       const rowValues = []
       for (let col = 1; col <= this.columns; col++) {
         const cellId = `cell-${currentTry}-${col}`
@@ -146,35 +153,42 @@ export default {
         return
       }
 
-      const matchedIndices = new Set()
+      const results = []
+      const targetMatched = new Array(this.columns).fill(false)
 
-      // First pass: Mark CORRECT letters
-      rowValues.forEach((cell, index) => {
-        if (cell.value === targetChars[index]) {
-          this.setCellValue(cell.cellId, cell.value, CellType.CORRECT)
-          matchedIndices.add(index)
+      for (let i = 0; i < this.columns; i++) {
+        if (rowValues[i].value === targetChars[i]) {
+          results[i] = CellType.CORRECT
+          targetMatched[i] = true
         }
-      })
+      }
 
-      rowValues.forEach((cell, index) => {
-        if (matchedIndices.has(index)) {
-          return
+      for (let i = 0; i < this.columns; i++) {
+        if (results[i]) continue
+
+        let found = false
+        for (let j = 0; j < this.columns; j++) {
+          if (!targetMatched[j] && rowValues[i].value === targetChars[j]) {
+            results[i] = CellType.MISPLACED
+            targetMatched[j] = true
+            found = true
+            break
+          }
         }
-
-        if (
-          targetChars.includes(cell.value) &&
-          targetChars.findIndex(
-            (char, i) => char === cell.value && !matchedIndices.has(i),
-          ) >= 0
-        ) {
-          this.setCellValue(cell.cellId, cell.value, CellType.MISPLACED)
-          matchedIndices.add(index)
-        } else {
-          this.setCellValue(cell.cellId, cell.value, CellType.ABSENT)
+        if (!found) {
+          results[i] = CellType.ABSENT
         }
-      })
+      }
 
-      // Check for win or loss after processing the row
+      for (let i = 0; i < this.columns; i++) {
+        this.setCellValue(
+          rowValues[i].cellId,
+          rowValues[i].value,
+          results[i],
+          animated,
+        )
+      }
+
       setTimeout(() => {
         if (
           rowValues.map((cell) => cell.value).join('') ===
@@ -187,6 +201,12 @@ export default {
           console.log('Game over!')
         }
       }, this.columns * 200)
+    },
+    clearGrid() {
+      Object.keys(this.cellValues).forEach((cellId) => {
+        this.cellValues[cellId] = ''
+        this.cellStyles[cellId] = ''
+      })
     },
   },
 }

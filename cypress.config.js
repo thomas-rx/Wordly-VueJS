@@ -1,10 +1,16 @@
-const { defineConfig } = require('cypress')
+const webpackPreprocessor = require('@cypress/webpack-preprocessor');
 
-module.exports = defineConfig({
-  screenshotOnRunFailure: true,
-  video: true,
+module.exports = {
   e2e: {
-    setupNodeEvents(on, config) {},
+    setupNodeEvents(on, config) {
+      const options = {
+        webpackOptions: require('./webpack.config.cypress'),
+      };
+
+      on('file:preprocessor', webpackPreprocessor(options));
+      return config;
+    },
+    specPattern: '**/*.spec.js',
   },
-})
+}
 

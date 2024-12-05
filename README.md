@@ -39,5 +39,5 @@ npm run test
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
 # Node version
- Node v20.9.0 +
 
+Node v20.9.0 +
