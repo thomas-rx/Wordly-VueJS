@@ -8,6 +8,7 @@
       v-if="!isLoading"
       class="z-10 justify-center flex flex-col items-center"
     >
+    <CountDown></CountDown>
       <WordGrid
         ref="wordGrid"
         :rows="maxTries"
@@ -45,6 +46,7 @@ import confettiMixin from '@/utils/confettiMixin.js'
 import { mapActions, mapState, mapGetters } from 'vuex'
 import Footer from '@/components/common/Footer.vue'
 import { getDailyWord } from '@/api/word'
+import CountDown from '@/components/game/CountDown.vue'
 
 export default {
   components: {
