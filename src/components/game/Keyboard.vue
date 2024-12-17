@@ -9,7 +9,15 @@
         v-for="key in row"
         :id="key"
         :key="key"
-        class="w-12 h-12 m-1 bg-white text-black text-xl rounded-lg flex items-center justify-center hover:text-gray-400"
+        :class="[
+          'w-12 h-12 m-1 text-xl rounded-lg flex items-center justify-center focus:outline-none',
+          keyStates[key] === 'misplaced'
+            ? 'bg-yellow-500'
+            : keyStates[key] === 'correct'
+              ? 'bg-green-500'
+              : 'bg-white text-black',
+        ]"
+        :disabled="keyStates[key] === 'absent'"
         @click="$emit('keyPress', key)"
       >
         {{ key }}
@@ -28,6 +36,10 @@ export default {
         ['Q', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M'],
         ['↲', 'W', 'X', 'C', 'V', 'B', 'N', '⌫'],
       ],
+    },
+    keyStates: {
+      type: Object,
+      default: () => ({}),
     },
   },
 }

@@ -151,17 +151,17 @@ export default {
         console.error('User ID is required to subscribe to games.')
         return
       }
-    
+
       const unsubscribe = gamesApi.subscribeToUserGames(userId, (games) => {
         commit('setGameHistory', games)
       })
-    
+
       state.unsubscribeFromUserGames = unsubscribe
     },
 
     /**
      * Unsubscribes from the user's games if a subscription exists.
-     * 
+     *
      * @param {Object} context - The Vuex action context.
      * @param {Object} context.state - The state object of the Vuex module.
      */

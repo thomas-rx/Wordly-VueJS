@@ -5,10 +5,15 @@
       :rows="maxTries"
       :columns="wordLength"
       @word-verified="handleWordVerification"
+      @update-key-state="handleKeyStateUpdate"
     />
 
     <InfoBox :message="infoMessage" :is-visible="infoVisible" />
-    <Keyboard v-if="!isGameOver" @key-press="handleKeyPress" />
+    <Keyboard
+      v-if="!isGameOver"
+      :keyStates="keyStates"
+      @key-press="handleKeyPress"
+    />
   </div>
 </template>
 
@@ -37,6 +42,7 @@ export default {
       startTime: null,
       isGameOver: false,
       isLoading: true,
+      keyStates: {},
     }
   },
   computed: {
@@ -177,6 +183,18 @@ export default {
         })
       })
     },
+
+    handleKeyStateUpdate({ letter, state }) {
+      if (!letter || !state) {
+        console.warn('Invalid key state update:', { letter, state })
+        return
+      }
+
+      if (!this.keyStates[letter] || this.keyStates[letter] !== 'correct') {
+        this.keyStates[letter] = state
+      }
+    },
+
     ...mapActions('games', [
       'loadCurrentGame',
       'saveCurrentGame',

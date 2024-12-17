@@ -141,6 +141,10 @@ export default {
       }
 
       const targetChars = targetWord.toUpperCase().split('')
+      const targetLetterCounts = {}
+      targetChars.forEach((char) => {
+        targetLetterCounts[char] = (targetLetterCounts[char] || 0) + 1
+      })
 
       const rowValues = []
       for (let col = 1; col <= this.columns; col++) {
@@ -160,22 +164,18 @@ export default {
         if (rowValues[i].value === targetChars[i]) {
           results[i] = CellType.CORRECT
           targetMatched[i] = true
+          targetLetterCounts[rowValues[i].value]--
         }
       }
 
       for (let i = 0; i < this.columns; i++) {
         if (results[i]) continue
 
-        let found = false
-        for (let j = 0; j < this.columns; j++) {
-          if (!targetMatched[j] && rowValues[i].value === targetChars[j]) {
-            results[i] = CellType.MISPLACED
-            targetMatched[j] = true
-            found = true
-            break
-          }
-        }
-        if (!found) {
+        const letter = rowValues[i].value
+        if (targetLetterCounts[letter] > 0) {
+          results[i] = CellType.MISPLACED
+          targetLetterCounts[letter]--
+        } else {
           results[i] = CellType.ABSENT
         }
       }
@@ -187,6 +187,20 @@ export default {
           results[i],
           animated,
         )
+
+        const letter = rowValues[i].value
+        if (!letter) continue
+
+        let currentState = results[i]
+        const existingState = this.keyStates?.[letter]
+
+        if (
+          !existingState ||
+          (existingState === 'misplaced' && currentState === 'correct') ||
+          (existingState === 'absent' && currentState !== 'absent')
+        ) {
+          this.$emit('update-key-state', { letter, state: currentState })
+        }
       }
 
       setTimeout(() => {
