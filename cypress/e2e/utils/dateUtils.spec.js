@@ -16,7 +16,7 @@ describe('Testing dateUtils.js functions', () => {
   it('Formats date to readable title (formatTitle)', () => {
     const date = new Date('2024-11-27T00:00:00Z')
     const result = formatTitle(date)
-    expect(result).to.equal('Wednesday, 27/11')
+    expect(result).to.equal('mercredi, 27/11')
   })
 
   it('Formats date to DD/MM/YYYY (formatDate)', () => {

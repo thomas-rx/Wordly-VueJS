@@ -6,7 +6,7 @@
         class="w-1/6 h-5 bg-gray-700 rounded animate-pulse"
       />
       <div v-else class="w-1/4 flex flex-col items-center justify-center">
-        <h1 class="text-2xl font-bold text-white">Games played</h1>
+        <h1 class="text-2xl font-bold text-white">Parties jouées</h1>
         <p class="text-gray-400">{{ nbGamesPlayed }}</p>
       </div>
 
@@ -15,7 +15,7 @@
         class="w-1/6 h-5 bg-gray-700 rounded animate-pulse"
       />
       <div v-else class="w-1/4 flex flex-col items-center justify-center">
-        <h1 class="text-2xl font-bold text-white">Win rate</h1>
+        <h1 class="text-2xl font-bold text-white">Tentatives moyennes</h1>
         <p class="text-gray-400">{{ avgWinRate }}%</p>
       </div>
 
@@ -24,7 +24,7 @@
         class="w-1/6 h-5 bg-gray-700 rounded animate-pulse"
       />
       <div v-else class="w-1/4 flex flex-col items-center justify-center">
-        <h1 class="text-2xl font-bold text-white">Time played</h1>
+        <h1 class="text-2xl font-bold text-white">Temps de jeu total</h1>
         <p class="text-gray-400">{{ totalTimePlayed }}</p>
       </div>
     </div>
@@ -35,10 +35,10 @@
       class="w-1/2 p-4 flex flex-col items-center justify-start text-white hide-scrollbar overflow-y-auto"
     >
       <h1 class="text-2xl font-bold mb-4 text-white">
-        Game History for <span class="text-blue-500">{{ username }}</span>
+        Historique de jeu pour <span class="text-blue-500">{{ username }}</span>
       </h1>
       <p class="text-gray-400">
-        Here you can find a list of all the games you have played so far.
+        Vous trouverez ici l'historique de vos parties.
       </p>
 
       <div v-if="isLoading" class="space-y-4 pt-10 pb-[25%] w-full">
@@ -74,44 +74,45 @@
           >
             <div class="flex justify-between w-full">
               <h2 class="text-lg font-semibold">
-                You've played on {{ formatTitle(game.date) }}
+                Vous avez joué le {{ formatTitle(game.date) }}
               </h2>
               <p class="text-sm">
                 {{
                   game.result === 'win'
-                    ? "You're a winner 👑"
-                    : "You're a looser 🤓☝🏼"
+                    ? 'Vous avez gagné 🎉🥳'
+                    : 'Vous avez perdu 😢'
                 }}
               </p>
             </div>
             <p>
-              The word was <strong>{{ game.word }}</strong>
+              Le mot était <strong>{{ game.word }}</strong>
             </p>
 
             <div class="flex flex-row w-full space-x-5 pt-10">
               <p>
-                Attempts: <strong>{{ game.attempts.length }}</strong>
+                Essais: <strong>{{ game.attempts.length }}</strong>
               </p>
               <p>
                 Points: <strong>{{ game.points }}</strong>
               </p>
               <p>
-                Time: <strong>{{ secondsToDayjs(game.time) }}</strong>
+                Temps: <strong>{{ secondsToDayjs(game.time) }}</strong>
               </p>
             </div>
           </li>
         </ul>
       </div>
       <div v-else>
-        <p class="text-gray-400 pt-10">No games played yet.</p>
+        <p class="text-gray-400 pt-10">
+          Vous n'avez pas encore joué de parties.
+        </p>
       </div>
     </div>
 
     <div class="w-1/2 p-4 flex flex-col items-center justify-start text-white">
-      <h2 class="text-xl font-bold mb-4">Game Replay</h2>
+      <h2 class="text-xl font-bold mb-4">Déroulement de la partie</h2>
       <p class="text-gray-400">
-        Here you can replay the selected game and see the details of each
-        attempt.
+        Découvrez le déroulement de la partie sélectionnée.
       </p>
       <WordGrid
         ref="wordGrid"

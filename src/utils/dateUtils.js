@@ -1,7 +1,9 @@
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import { Timestamp } from 'firebase/firestore'
+import 'dayjs/locale/fr'
 
+dayjs.locale('fr')
 dayjs.extend(duration)
 
 /**

@@ -18,6 +18,5 @@ store.dispatch('user/initializeUser').then(() => {
 })
 
 window.addEventListener('beforeunload', () => {
-  alert('Unsubscribing from user games...')
   store.dispatch('games/unsubscribeFromUserGames')
 })

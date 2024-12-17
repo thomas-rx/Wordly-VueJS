@@ -1,19 +1,38 @@
 <template>
-  <div v-if="!isLoading">
-    <WordGrid
-      ref="wordGrid"
-      :rows="maxTries"
-      :columns="wordLength"
-      @word-verified="handleWordVerification"
+  <div>
+    <canvas
+      id="canvas-confetti"
+      class="absolute top-0 left-0 w-full h-full z-0 pointer-events-none"
+    ></canvas>
+    <div
+      v-if="!isLoading"
+      class="z-10 justify-center flex flex-col items-center"
+    >
+      <WordGrid
+        ref="wordGrid"
+        :rows="maxTries"
+        :columns="wordLength"
+        @word-verified="handleWordVerification"
       @update-key-state="handleKeyStateUpdate"
-    />
-
-    <InfoBox :message="infoMessage" :is-visible="infoVisible" />
-    <Keyboard
+      />
+      <InfoBox :message="infoMessage" :is-visible="infoVisible" />
+      <Keyboard
       v-if="!isGameOver"
       :keyStates="keyStates"
       @key-press="handleKeyPress"
     />
+      <button v-if="!isGameOver" @click="handleCancel" class="mt-2">
+        <span class="text-red-600 underline">Abandonner la partie</span>
+      </button>
+
+      <RouterLink
+        v-if="isGameOver"
+        to="/"
+        class="flex flex-row items-center justify-center w-64 h-12 bg-white rounded-lg mt-4"
+      >
+        <span class="text-black">Revenir à la page principale</span>
+      </RouterLink>
+    </div>
   </div>
 </template>
 
@@ -22,6 +41,7 @@ import WordGrid from '@/components/game/WordGrid.vue'
 import Keyboard from '@/components/game/Keyboard.vue'
 import InfoBox from '@/components/game/InfoBox.vue'
 import keyboardMixin from '@/utils/keyboardMixin.js'
+import confettiMixin from '@/utils/confettiMixin.js'
 import { mapActions, mapState, mapGetters } from 'vuex'
 
 export default {
@@ -30,7 +50,7 @@ export default {
     Keyboard,
     InfoBox,
   },
-  mixins: [keyboardMixin], // Keyboard logic is shared between the Game and Keyboard components with a mixin.
+  mixins: [keyboardMixin, confettiMixin],
   data() {
     return {
       maxTries: 6,
@@ -116,10 +136,12 @@ export default {
           this.recordGameInHistory(isWin)
           this.isGameOver = true
           this.saveGameState()
-          this.infoMessage = isWin
-            ? 'Congratulations! You guessed the word!'
-            : 'Game over! You did not guess the word.'
+          this.infoMessage = isWin ? 'Victoire !' : 'Défaite !'
           this.infoVisible = true
+
+          if (isWin) {
+            this.showConfetti()
+          }
         }
       }
     },
@@ -129,17 +151,22 @@ export default {
      */
     saveGameState() {
       const elapsedTime = Math.floor((Date.now() - this.startTime) / 1000)
-      const gameState = {
-        currentRow: this.currentRow,
-        currentColumn: this.currentColumn,
-        word: this.word,
-        attempts: this.attempts,
-        cellValues: this.$refs.wordGrid.cellValues,
-        cellStyles: this.$refs.wordGrid.cellStyles,
-        isGameOver: this.isGameOver,
-        elapsedTime,
-      }
-      this.$store.dispatch('games/saveCurrentGame', gameState)
+
+      // Save the game state after 2 seconds (to allow animations to finish)
+      setTimeout(() => {
+        const gameState = {
+          currentRow: this.currentRow,
+          currentColumn: this.currentColumn,
+          word: this.word,
+          attempts: this.attempts,
+          cellValues: this.$refs.wordGrid.cellValues,
+          cellStyles: this.$refs.wordGrid.cellStyles,
+          isGameOver: this.isGameOver,
+          elapsedTime,
+        }
+
+        this.$store.dispatch('games/saveCurrentGame', gameState)
+      }, 1000)
     },
 
     /**
@@ -183,6 +210,26 @@ export default {
         })
       })
     },
+
+    /**
+     * Handles the cancellation of the current game.
+     * It clears the current game state and resets relevant data properties.
+     */
+    async handleCancel() {
+        try {
+          this.isGameOver = true
+          this.infoMessage = 'Vous avez abandonné la partie.'
+          this.infoVisible = true
+          this.saveGameState()
+          this.recordGameInHistory(false)
+        } catch (error) {
+          console.error('Error cancelling the game:', error)
+          this.infoMessage =
+            'An error occurred while trying to cancel the game.'
+          this.infoVisible = true
+      }
+    },
+
 
     handleKeyStateUpdate({ letter, state }) {
       if (!letter || !state) {

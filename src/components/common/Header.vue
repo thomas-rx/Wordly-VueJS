@@ -62,7 +62,7 @@
           v-if="bestPlayer"
           class="text-white text-right hidden lg:flex flex-col items-end"
         >
-          <span class="text-lg">Weekly MVP</span>
+          <span class="text-lg">Joueur de la semaine</span>
           <span class="text-md pt-1">{{ bestPlayer.username }} 🥇</span>
           <span class="text-xs">
             {{ bestPlayer.points }} points -
