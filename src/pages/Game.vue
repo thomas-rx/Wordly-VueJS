@@ -8,7 +8,11 @@
       v-if="!isLoading"
       class="z-10 justify-center flex flex-col items-center"
     >
-    <CountDown></CountDown>
+      <CountDown
+        ref="countDown"
+        :startcount="this.countDownTime"
+        @end="handleCountdownEnd"
+      ></CountDown>
       <WordGrid
         ref="wordGrid"
         :rows="maxTries"
@@ -47,17 +51,20 @@ import { mapActions, mapState, mapGetters } from 'vuex'
 import Footer from '@/components/common/Footer.vue'
 import { getDailyWord } from '@/api/word'
 import CountDown from '@/components/game/CountDown.vue'
+import countDownMixin from '@utils/countDownMixin'
 
 export default {
   components: {
     WordGrid,
     Keyboard,
     InfoBox,
+    CountDown,
   },
-  mixins: [keyboardMixin, confettiMixin],
+  mixins: [keyboardMixin, confettiMixin, countDownMixin],
   data() {
     return {
       maxTries: 6,
+      infoMessage: '',
       infoVisible: false,
       currentColumn: 1,
       countTry: 1,
@@ -84,6 +91,9 @@ export default {
       this.restoreGameState(gameState)
     } else {
       this.startNewGame()
+      if (this.$refs.countDown) {
+        this.countDownTime = this.startCountDown()
+      }
     }
   },
   methods: {
@@ -100,7 +110,6 @@ export default {
      * to the console. If an error occurs, it is caught and logged to the console.
      */
     async recordGameInHistory(isWin) {
-      const elapsedTime = Math.floor((Date.now() - this.startTime) / 1000)
       const gameData = {
         word: this.word.toUpperCase(),
         attempts: this.attempts.map((guess) => ({
@@ -108,13 +117,14 @@ export default {
           result: guess === this.word.toUpperCase() ? 'correct' : 'incorrect',
         })),
         result: isWin ? 'win' : 'lose',
-        time: elapsedTime,
+        time: this.countDownTime,
         username: this.getUsername,
         points:
           Math.max(
             0,
             Math.floor(
-              (this.wordLength * 1000 - elapsedTime) /
+              (this.wordLength * 1000 -
+                (this.startCountDown() - this.countDownTime)) /
                 (this.attempts.length + 1),
             ),
           ) * (isWin ? 1 : 0),
@@ -165,7 +175,7 @@ export default {
           this.saveGameState()
           this.infoMessage = isWin ? 'Victoire !' : 'Défaite !'
           this.infoVisible = true
-
+          this.$refs.countDown.abort()
           if (isWin) {
             this.showConfetti()
           }
@@ -188,7 +198,7 @@ export default {
           cellValues: this.$refs.wordGrid.cellValues,
           cellStyles: this.$refs.wordGrid.cellStyles,
           isGameOver: this.isGameOver,
-          elapsedTime,
+          startTime: this.$refs.countDown.getCurrentTime(),
         }
 
         this.$store.dispatch('games/saveCurrentGame', gameState)
@@ -214,7 +224,7 @@ export default {
      * @param {number} gameState.currentColumn - The current column in the game.
      * @param {string} gameState.word - The word to be guessed in the game.
      * @param {Array} gameState.attempts - The list of attempts made by the player.
-     * @param {number} [gameState.elapsedTime=0] - The elapsed time in seconds since the game started.
+     * @param {number} gameState.time
      * @param {boolean} [gameState.isGameOver=false] - Indicates if the game is over.
      * @param {Object} gameState.cellValues - The values of the cells in the word grid.
      * @param {Object} gameState.cellStyles - The styles of the cells in the word grid.
@@ -224,7 +234,7 @@ export default {
       this.currentColumn = gameState.currentColumn
       this.word = gameState.word
       this.attempts = gameState.attempts
-      this.startTime = Date.now() - (gameState.elapsedTime || 0) * 1000
+      this.countDownTime = gameState.time
       this.isGameOver = gameState.isGameOver || false
 
       this.$nextTick(() => {
@@ -243,6 +253,7 @@ export default {
      */
     async handleCancel() {
       try {
+        this.$refs.countDown.abort()
         this.isGameOver = true
         this.infoMessage = 'Vous avez abandonné la partie.'
         this.infoVisible = true
@@ -251,7 +262,7 @@ export default {
       } catch (error) {
         console.error('Error cancelling the game:', error)
         this.infoMessage =
-          "Une erreur est survenue lors de l'abandon de la partie."
+            "Une erreur s'est produite lors de la tentative d'annulation de la partie."
         this.infoVisible = true
       }
     },
@@ -273,6 +284,18 @@ export default {
 
       if (!this.keyStates[letter] || this.keyStates[letter] !== 'correct') {
         this.keyStates[letter] = state
+      }
+    },
+    handleCountdownEnd() {
+      console.log('ended')
+      if (!this.isGameOver) {
+        this.isGameOver = true
+        this.infoMessage = 'Temps écoulé ! Vous avez perdu.'
+        this.infoVisible = true
+
+        // Sauvegarder l'état final et enregistrer la défaite
+        this.saveGameState()
+        this.recordGameInHistory(false)
       }
     },
 

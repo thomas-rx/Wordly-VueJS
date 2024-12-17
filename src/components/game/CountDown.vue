@@ -1,34 +1,48 @@
 <template>
   <div>
     <VueCountdown
-      :time="countdownTime"
+      ref="countdown"
+      :time="this.startcount"
       @end="onCountdownEnd"
-      v-slot="{ days, hours, minutes, seconds }"
+      v-slot="{ minutes, seconds }"
     >
-      Time Remaining: {{ days }} days, {{ hours }} hours, {{ minutes }} minutes, {{ seconds }} seconds.
+      Time Remaining: {{ minutes }} minutes, {{ seconds }} seconds.
     </VueCountdown>
   </div>
 </template>
 
 <script>
-import VueCountdown from '@chenfengyuan/vue-countdown'; // Import du composant
-import countDownMixin from '@/utils/countDownMixin.js'; // Si vous utilisez un mixin personnalisé
+import VueCountdown from '@chenfengyuan/vue-countdown' // Import du composant
+import countDownMixin from '@utils/countDownMixin'
 
 export default {
   name: 'CountDown',
   components: {
     VueCountdown, // Enregistrement du composant
   },
-  mixins: [countDownMixin], // Si vous avez un mixin pour réutiliser du code lié aux timers
-  data() {
-    return {
-      countdownTime: 2 * 24 * 60 * 60 * 1000, // Temps en millisecondes (2 jours ici)
-    };
+  mixins: [countDownMixin],
+  props: {
+    startcount: {
+      type: Number,
+      required: true,
+    },
   },
   methods: {
-
+    /**
+     *
+     */
+    abort() {
+      this.$refs.countdown.abort()
+    },
+    /**
+     *
+     * @returns {number}
+     */
+    getCurrentTime() {
+      return this.countDownTime
+    },
   },
-};
+}
 </script>
 
 <style scoped>
