@@ -2,7 +2,8 @@
   <div>
     <VueCountdown
       ref="countdown"
-      :time="this.startcount"
+      :time="this.startCount"
+      :auto-start="true"
       @end="onCountdownEnd"
       v-slot="{ minutes, seconds }"
     >
@@ -21,8 +22,11 @@ export default {
     VueCountdown, // Enregistrement du composant
   },
   mixins: [countDownMixin],
+  // mounted(){
+  //   this.$refs.countdown.start()
+  // },
   props: {
-    startcount: {
+    startCount: {
       type: Number,
       required: true,
     },

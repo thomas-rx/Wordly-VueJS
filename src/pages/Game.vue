@@ -10,7 +10,7 @@
     >
       <CountDown
         ref="countDown"
-        :startcount="this.countDownTime"
+        :startCount="this.countDownTime"
         @end="handleCountdownEnd"
       ></CountDown>
       <WordGrid
@@ -76,6 +76,7 @@ export default {
       isGameOver: false,
       isLoading: true,
       keyStates: {},
+      countDownTime : 1000
     }
   },
   computed: {
@@ -187,7 +188,6 @@ export default {
      * Saves the current game state by dispatching an action to the Vuex store.
      */
     saveGameState() {
-      const elapsedTime = Math.floor((Date.now() - this.startTime) / 1000)
       // Save the game state after 2 seconds (to allow animations to finish)
       setTimeout(() => {
         const gameState = {
@@ -212,8 +212,7 @@ export default {
      * @returns {Promise<Object>} The current game state.
      */
     async loadCurrentGame() {
-      const gameState = await this.$store.dispatch('games/loadCurrentGame')
-      return gameState
+      return await this.$store.dispatch('games/loadCurrentGame')
     },
 
     /**
@@ -236,7 +235,7 @@ export default {
       this.attempts = gameState.attempts
       this.countDownTime = gameState.time
       this.isGameOver = gameState.isGameOver || false
-
+      this.startTime = this.startCountDown() - gameState.time
       this.$nextTick(() => {
         Object.keys(gameState.cellValues).forEach((cellId) => {
           const value = gameState.cellValues[cellId]

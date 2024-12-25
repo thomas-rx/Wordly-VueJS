@@ -1,9 +1,4 @@
 export default {
-  data() {
-    return {
-      countDownTime: 0,
-    }
-  },
   methods: {
     /**
      * Set up the countDown just before the game starts
