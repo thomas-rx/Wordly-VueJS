@@ -3,6 +3,8 @@ export default {
     return {
       currentColumn: 1,
       currentRow: 1,
+      infoMessage: '',
+      isVerifying: false,
     }
   },
   methods: {
@@ -12,8 +14,8 @@ export default {
      * @param {string} key - The key that was pressed.
      * @returns {void}
      */
-    handleKeyPress(key) {
-      if (this.isGameOver) {
+    async handleKeyPress(key) {
+      if (this.isGameOver || this.isVerifying) {
         return
       }
       const regex = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -24,19 +26,20 @@ export default {
             this.currentColumn > 1 ||
             (this.currentColumn === this.wordLength + 1 &&
               this.$refs.wordGrid.getCellValue(
-                `cell-${this.currentRow}-${this.currentColumn - 1}`,
+                `cell-${this.currentRow}-${this.wordLength}`,
               ) !== '')
           ) {
             if (
               this.currentColumn === this.wordLength + 1 &&
               this.$refs.wordGrid.getCellValue(
-                `cell-${this.currentRow}-${this.currentColumn - 1}`,
+                `cell-${this.currentRow}-${this.wordLength}`,
               ) !== ''
             ) {
               this.$refs.wordGrid.setCellValue(
-                `cell-${this.currentRow}-${this.currentColumn - 1}`,
+                `cell-${this.currentRow}-${this.wordLength}`,
                 '',
               )
+              this.currentColumn = this.wordLength
             } else {
               this.currentColumn--
               this.$refs.wordGrid.setCellValue(
@@ -60,17 +63,28 @@ export default {
                   `cell-${this.currentRow}-${colIndex + 1}`,
                 ),
             ).join('')
-            this.attempts.push(guess)
-            console.log('Attempts:', this.attempts)
-            this.$refs.wordGrid.verifyWord(this.word, this.currentRow, true)
-            if (this.currentRow !== this.maxTries) {
-              this.currentRow++
-              this.currentColumn = 1
+            this.isVerifying = true
+            const beforeVerify = await this.$refs.wordGrid.beforeVerify(
+              this.currentRow,
+            )
+            this.isVerifying = false
+
+            if (beforeVerify) {
+              this.attempts.push(guess)
+              this.$refs.wordGrid.verifyWord(this.word, this.currentRow, true)
+              if (this.currentRow !== this.maxTries) {
+                this.currentRow++
+                this.currentColumn = 1
+              }
+              this.saveGameState()
+            } else {
+              console.log("Looks like the word doesn't exist.")
+              this.showInfoMessage("Le mot n'est pas dans la liste.")
             }
-            this.saveGameState()
           } else {
-            this.infoMessage = 'Veuillez compléter la ligne avant de valider.'
-            this.infoVisible = true
+            this.showInfoMessage(
+              'Veuillez compléter la ligne avant de valider.',
+            )
           }
           break
         default:
@@ -97,7 +111,7 @@ export default {
      * @param {Event} event - The key press event object.
      */
     getTypeKeyPress(event) {
-      if (this.isGameOver) {
+      if (this.isGameOver || this.isVerifying) {
         return
       }
       if (event.type === 'keydown') {
@@ -105,6 +119,21 @@ export default {
       } else {
         this.handleKeyPress(event)
       }
+    },
+
+    /**
+     * Displays an informational message to the user for 3 seconds.
+     *
+     * @param {string} message - The message to be displayed.
+     */
+    showInfoMessage(message) {
+      this.infoMessage = message
+      this.infoVisible = true
+
+      setTimeout(() => {
+        this.infoMessage = ''
+        this.infoVisible = false
+      }, 3000)
     },
   },
   mounted() {

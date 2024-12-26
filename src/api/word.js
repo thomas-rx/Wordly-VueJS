@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL = env.BASE_URL
+const BASE_URL = process.env.VUE_APP_API_URL
 
 /**
  * Fetches the daily word for the game.
@@ -11,8 +11,18 @@ const BASE_URL = env.BASE_URL
  * @throws {Error} If the request fails.
  */
 export async function getDailyWord() {
-  const response = await axios.get(`${BASE_URL}/api/new-game`)
-  return response.data
+  if (!BASE_URL) {
+    throw new Error('API URL is not set')
+  }
+  try {
+    const response = await axios.get(`${BASE_URL}/api/new-game`)
+    console.debug('Called /api/new-game endpoint.')
+    console.debug(response.data)
+    return response.data.word
+  } catch (error) {
+    console.error('Erreur lors de la récupération du mot quotidien:', error)
+    throw error
+  }
 }
 
 /**
@@ -23,8 +33,18 @@ export async function getDailyWord() {
  * @throws {Error} If the request fails.
  */
 export async function checkWord(word) {
-  const response = await axios.post(`${BASE_URL}/api/check-word`, {
-    word,
-  })
-  return response.data
+  if (!BASE_URL) {
+    throw new Error('API URL is not set')
+  }
+  try {
+    const response = await axios.post(`${BASE_URL}/api/check-word`, {
+      word,
+    })
+    console.debug('Called /api/check-word endpoint with word:', word)
+    console.debug(response.data)
+    return response.data.isWord
+  } catch (error) {
+    console.error('Erreur lors de la vérification du mot:', error)
+    throw error
+  }
 }

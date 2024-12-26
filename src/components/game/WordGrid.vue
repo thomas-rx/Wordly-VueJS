@@ -20,6 +20,7 @@
 
 <script>
 import { reactive } from 'vue'
+import { checkWord } from '@/api/word'
 
 /**
  * Enum for cell types in the WordGrid component.
@@ -115,6 +116,36 @@ export default {
     },
 
     /**
+     * Generates the word and collects row values for the current attempt.
+     *
+     * @param {number} currentTry - The current row number being processed.
+     * @returns {[string, Array<{value: string, cellId: string}>]} An array containing:
+     * - The concatenated string of cell values for the current row (`word`).
+     * - An array of objects representing the row's cell values and their corresponding IDs (`rowValues`).
+     */
+    getAttemptWord(currentTry) {
+      let word = ''
+      const rowValues = []
+      for (let col = 1; col <= this.columns; col++) {
+        const cellId = `cell-${currentTry}-${col}`
+        const cellValue = this.cellValues[cellId]?.toUpperCase() || ''
+        rowValues.push({ value: cellValue, cellId })
+        word += cellValue
+      }
+      return [word, rowValues]
+    },
+    /**
+     * Verifies if the constructed word exists in the allowed word list.
+     *
+     * @param {number} currentTry - The current row number being verified.
+     * @returns {Promise<boolean>} A Promise resolving to `true` if the word exists in the list,
+     * otherwise `false`.
+     */
+    async beforeVerify(currentTry) {
+      const [word] = this.getAttemptWord(currentTry)
+      return await checkWord(word.toLowerCase())
+    },
+    /**
      * Verifies the target word against the current attempt in the word grid.
      *
      * @param {string} targetWord - The word to verify against.
@@ -128,34 +159,38 @@ export default {
      *
      * @emits {Event} word-verified - Emits true if the word is correct, false otherwise.
      */
-
     verifyWord(targetWord, currentTry, animated = false) {
+      if (typeof targetWord !== 'string') {
+        console.warn(
+          'Invalid target word type, expected a string, got:',
+          typeof targetWord,
+        )
+        return
+      }
+
+      if (targetWord.length !== this.columns) {
+        console.warn(
+          'Invalid target word length, expected:',
+          this.columns,
+          'got:',
+          targetWord.length,
+        )
+        return
+      }
+
       if (currentTry < 1 || currentTry > this.rows) {
         console.warn('Invalid current try number.')
         return
       }
 
-      if (targetWord.length !== this.columns) {
-        console.warn('Invalid target word length.')
-        return
-      }
+      const [word, rowValues] = this.getAttemptWord(currentTry)
+      console.debug(`Verifying ${word} against ${targetWord}`)
 
       const targetChars = targetWord.toUpperCase().split('')
       const targetLetterCounts = {}
       targetChars.forEach((char) => {
         targetLetterCounts[char] = (targetLetterCounts[char] || 0) + 1
       })
-
-      const rowValues = []
-      for (let col = 1; col <= this.columns; col++) {
-        const cellId = `cell-${currentTry}-${col}`
-        const cellValue = this.cellValues[cellId]?.toUpperCase() || ''
-        rowValues.push({ value: cellValue, cellId })
-      }
-
-      if (rowValues.some((cell) => cell.value === '')) {
-        return
-      }
 
       const results = []
       const targetMatched = new Array(this.columns).fill(false)
@@ -204,10 +239,7 @@ export default {
       }
 
       setTimeout(() => {
-        if (
-          rowValues.map((cell) => cell.value).join('') ===
-          targetWord.toUpperCase()
-        ) {
+        if (word.toLowerCase() === targetWord) {
           this.$emit('word-verified', true)
           console.log('🎉 Winner!')
         } else if (currentTry === this.rows) {

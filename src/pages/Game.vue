@@ -13,14 +13,14 @@
         :rows="maxTries"
         :columns="wordLength"
         @word-verified="handleWordVerification"
-      @update-key-state="handleKeyStateUpdate"
+        @update-key-state="handleKeyStateUpdate"
       />
       <InfoBox :message="infoMessage" :is-visible="infoVisible" />
       <Keyboard
-      v-if="!isGameOver"
-      :keyStates="keyStates"
-      @key-press="handleKeyPress"
-    />
+        v-if="!isGameOver"
+        :keyStates="keyStates"
+        @key-press="handleKeyPress"
+      />
       <button v-if="!isGameOver" @click="handleCancel" class="mt-2">
         <span class="text-red-600 underline">Abandonner la partie</span>
       </button>
@@ -43,6 +43,8 @@ import InfoBox from '@/components/game/InfoBox.vue'
 import keyboardMixin from '@/utils/keyboardMixin.js'
 import confettiMixin from '@/utils/confettiMixin.js'
 import { mapActions, mapState, mapGetters } from 'vuex'
+import Footer from '@/components/common/Footer.vue'
+import { getDailyWord } from '@/api/word'
 
 export default {
   components: {
@@ -54,9 +56,11 @@ export default {
   data() {
     return {
       maxTries: 6,
-      infoMessage: '',
       infoVisible: false,
-      word: 'HELLO',
+      currentColumn: 1,
+      countTry: 1,
+      currentRow: 1,
+      word: '',
       wordLength: 5,
       attempts: [],
       startTime: null,
@@ -74,10 +78,10 @@ export default {
     const gameState = await this.loadCurrentGame()
     this.isLoading = false
     await this.$nextTick()
-    if (gameState) {
+    if (gameState && !gameState.isGameOver) {
       this.restoreGameState(gameState)
     } else {
-      this.word = 'HELLO'
+      this.startNewGame()
     }
   },
   methods: {
@@ -123,6 +127,27 @@ export default {
     },
 
     /**
+     * Starts a new game by fetching the daily word and initializing game state.
+     *
+     * @returns {Promise<void>} A promise that resolves when the game has started.
+     * @throws Will log an error message to the console if there is an issue starting a new game.
+     */
+    async startNewGame() {
+      try {
+        this.word = await getDailyWord()
+        console.log('Daily word loaded:', this.word)
+        this.currentRow = 1
+        this.currentColumn = 1
+        this.attempts = []
+        this.isGameOver = false
+        this.$refs.wordGrid.clearGrid()
+        this.saveGameState()
+      } catch (error) {
+        console.error('Error while starting a new game:', error)
+      }
+    },
+
+    /**
      * Handles the verification of the guessed word.
      * If the word is correctly guessed or the maximum number of tries is exceeded,
      * it records the game in history, sets the game over state, saves the game state,
@@ -151,7 +176,6 @@ export default {
      */
     saveGameState() {
       const elapsedTime = Math.floor((Date.now() - this.startTime) / 1000)
-
       // Save the game state after 2 seconds (to allow animations to finish)
       setTimeout(() => {
         const gameState = {
@@ -216,21 +240,29 @@ export default {
      * It clears the current game state and resets relevant data properties.
      */
     async handleCancel() {
-        try {
-          this.isGameOver = true
-          this.infoMessage = 'Vous avez abandonné la partie.'
-          this.infoVisible = true
-          this.saveGameState()
-          this.recordGameInHistory(false)
-        } catch (error) {
-          console.error('Error cancelling the game:', error)
-          this.infoMessage =
-            'An error occurred while trying to cancel the game.'
-          this.infoVisible = true
+      try {
+        this.isGameOver = true
+        this.infoMessage = 'Vous avez abandonné la partie.'
+        this.infoVisible = true
+        this.saveGameState()
+        this.recordGameInHistory(false)
+      } catch (error) {
+        console.error('Error cancelling the game:', error)
+        this.infoMessage =
+          "Une erreur est survenue lors de l'abandon de la partie."
+        this.infoVisible = true
       }
     },
 
-
+    /**
+     * Updates the state of a key based on the provided letter and state.
+     *
+     * @param {Object} param - The parameter object.
+     * @param {string} param.letter - The letter of the key to update.
+     * @param {string} param.state - The new state of the key (e.g., 'correct', 'incorrect').
+     *
+     * @returns {void}
+     */
     handleKeyStateUpdate({ letter, state }) {
       if (!letter || !state) {
         console.warn('Invalid key state update:', { letter, state })
