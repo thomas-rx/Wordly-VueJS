@@ -22,5 +22,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Start server
+        run: npm run serve &
+        env:
+          NODE_ENV: production
+
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for server to start..."
+          npx wait-on http://localhost:4000
+
       - name: Run Cypress
         run: npx cypress run
