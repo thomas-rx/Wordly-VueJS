@@ -75,7 +75,8 @@ export default {
       isGameOver: false,
       isLoading: true,
       keyStates: {},
-      countDownTime :this.$store.state.games.currentGame?.time || this.startCountDown(),
+      countDownTime:
+        this.$store.state.games.currentGame?.time || this.startCountDown(),
     }
   },
   computed: {
@@ -91,9 +92,6 @@ export default {
       this.restoreGameState(gameState)
     } else {
       await this.startNewGame()
-      // if (this.$refs.countDown) {
-      //   this.countDownTime = this.startCountDown()
-      // }
     }
   },
   methods: {
@@ -110,7 +108,18 @@ export default {
      * to the console. If an error occurs, it is caught and logged to the console.
      */
     async recordGameInHistory(isWin) {
+      this.countDownTime = this.$refs.countDown.getCurrentTime()
       const elapsedTime = this.startCountDown() - this.countDownTime
+      console.log(elapsedTime)
+      if (elapsedTime < 0 || isNaN(elapsedTime)) {
+        console.warn(
+          'Elapsed time is invalid. Check startCountDown and countDownTime values.',
+        )
+      } else {
+        console.log(`Elapsed time recorded: ${elapsedTime}`)
+        console.log(`start countdown ${this.startCountDown()}`)
+        console.log(`count down time ${this.countDownTime}`)
+      }
       const gameData = {
         word: this.word.toUpperCase(),
         attempts: this.attempts.map((guess) => ({
@@ -153,7 +162,7 @@ export default {
         this.currentColumn = 1
         this.attempts = []
         this.isGameOver = false
-        this.countDownTime = this.startCountDown();
+        this.countDownTime = this.startCountDown()
         this.$refs.wordGrid.clearGrid()
         this.saveGameState()
       } catch (error) {
@@ -190,6 +199,7 @@ export default {
      */
     saveGameState() {
       setTimeout(() => {
+        this.countDownTime = this.$refs.countDown.getCurrentTime()
         const elapsedTime = this.startCountDown() - this.countDownTime
         const gameState = {
           currentRow: this.currentRow,
@@ -201,10 +211,10 @@ export default {
           isGameOver: this.isGameOver,
           time: elapsedTime,
           // startTime: this.$refs.countDown.getCurrentTime(),
-        };
+        }
 
-        this.$store.dispatch("games/saveCurrentGame", gameState);
-      }, 1000);
+        this.$store.dispatch('games/saveCurrentGame', gameState)
+      }, 1000)
     },
 
     /**
@@ -256,6 +266,7 @@ export default {
     async handleCancel() {
       try {
         this.$refs.countDown?.abort()
+        this.countDownTime -= this.$refs.countDown.getCurrentTime()
         this.isGameOver = true
         this.infoMessage = 'Vous avez abandonné la partie.'
         this.infoVisible = true

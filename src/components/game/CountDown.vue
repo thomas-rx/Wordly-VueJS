@@ -22,9 +22,6 @@ export default {
     VueCountdown, // Enregistrement du composant
   },
   mixins: [countDownMixin],
-  // mounted(){
-  //   this.$refs.countdown.start()
-  // },
   props: {
     startCount: {
       type: Number,
@@ -39,11 +36,12 @@ export default {
       this.$refs.countdown.abort()
     },
     /**
+     * Retrieves the time elapsed from the countdown timer.
      *
-     * @returns {number}
+     * @returns {number} - The interval value representing the time elapsed in milliseconds.
      */
     getCurrentTime() {
-      return this.startCount
+      return this.startCountDown() - this.$refs.countdown.interval
     },
   },
 }
