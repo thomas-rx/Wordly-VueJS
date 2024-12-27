@@ -41,7 +41,8 @@ export default {
      * @returns {number} - The interval value representing the time elapsed in milliseconds.
      */
     getCurrentTime() {
-      return this.startCountDown() - this.$refs.countdown.interval
+      console.log(`ce que je retourne dans get current time ${this.startCountDown() - this.$refs.countdown.interval}`)
+      return this.startCountDown() - this.$refs.countdown.totalMilliseconds
     },
   },
 }

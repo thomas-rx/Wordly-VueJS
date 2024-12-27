@@ -2,7 +2,7 @@ import {
   toDayjs,
   formatTitle,
   formatDate,
-  secondsToDayjs,
+  millisecondsToDayjs,
 } from '@/utils/dateUtils'
 import dayjs from 'dayjs'
 
@@ -25,9 +25,9 @@ describe('Testing dateUtils.js functions', () => {
     expect(result).to.equal('27/11/2024')
   })
 
-  it('Converts seconds to human-readable format (secondsToDayjs)', () => {
+  it('Converts seconds to human-readable format (millisecondsToDayjs)', () => {
     const seconds = 3661 // 1 hour, 1 minute, 1 second
-    const result = secondsToDayjs(seconds)
+    const result = millisecondsToDayjs(seconds)
     expect(result).to.equal('01:01:01')
   })
 })

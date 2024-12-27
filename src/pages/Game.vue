@@ -77,6 +77,7 @@ export default {
       keyStates: {},
       countDownTime:
         this.$store.state.games.currentGame?.time || this.startCountDown(),
+      elapsedTime: 0,
     }
   },
   computed: {
@@ -96,6 +97,34 @@ export default {
   },
   methods: {
     /**
+     * Updates the `elapsedTime` property based on the current state of the countdown timer.
+     *
+     * This method retrieves the current remaining time from the `CountDown` component and
+     * calculates the elapsed time by subtracting it from the total countdown duration (`startCountDown`).
+     * It ensures that the elapsed time is updated without modifying the initial countdown time used as a prop.
+     *
+     * Usage:
+     * Call this method before saving the game state or recording the game in the history
+     * to ensure the elapsed time is accurate.
+     *
+     * @returns {void}
+     */
+    updateElapsedTime() {
+      if (this.$refs.countDown) {
+        this.elapsedTime =
+          this.startCountDown() - this.$refs.countDown.getCurrentTime()
+        console.log(this.elapsedTime)
+        if (this.elapsedTime < 0 || isNaN(this.elapsedTime)) {
+          console.warn(
+            'Elapsed time is invalid. Check startCountDown and countDownTime values.',
+          )
+        } else {
+          console.log(`Elapsed time recorded: ${this.elapsedTime}`)
+          console.log(`start countdown ${this.startCountDown()}`)
+        }
+      }
+    },
+    /**
      * Records the current game in the history.
      *
      * @param {boolean} isWin - Indicates whether the game was won or lost.
@@ -108,18 +137,7 @@ export default {
      * to the console. If an error occurs, it is caught and logged to the console.
      */
     async recordGameInHistory(isWin) {
-      this.countDownTime = this.$refs.countDown.getCurrentTime()
-      const elapsedTime = this.startCountDown() - this.countDownTime
-      console.log(elapsedTime)
-      if (elapsedTime < 0 || isNaN(elapsedTime)) {
-        console.warn(
-          'Elapsed time is invalid. Check startCountDown and countDownTime values.',
-        )
-      } else {
-        console.log(`Elapsed time recorded: ${elapsedTime}`)
-        console.log(`start countdown ${this.startCountDown()}`)
-        console.log(`count down time ${this.countDownTime}`)
-      }
+      this.updateElapsedTime()
       const gameData = {
         word: this.word.toUpperCase(),
         attempts: this.attempts.map((guess) => ({
@@ -127,7 +145,7 @@ export default {
           result: guess === this.word.toUpperCase() ? 'correct' : 'incorrect',
         })),
         result: isWin ? 'win' : 'lose',
-        time: elapsedTime,
+        time: this.elapsedTime,
         username: this.getUsername,
         points:
           Math.max(
@@ -199,8 +217,7 @@ export default {
      */
     saveGameState() {
       setTimeout(() => {
-        this.countDownTime = this.$refs.countDown.getCurrentTime()
-        const elapsedTime = this.startCountDown() - this.countDownTime
+        this.updateElapsedTime()
         const gameState = {
           currentRow: this.currentRow,
           currentColumn: this.currentColumn,
@@ -209,7 +226,7 @@ export default {
           cellValues: this.$refs.wordGrid.cellValues,
           cellStyles: this.$refs.wordGrid.cellStyles,
           isGameOver: this.isGameOver,
-          time: elapsedTime,
+          time: this.elapsedTime,
           // startTime: this.$refs.countDown.getCurrentTime(),
         }
 
@@ -246,7 +263,12 @@ export default {
       this.word = gameState.word
       this.word = gameState.word
       this.attempts = gameState.attempts
-      this.countDownTime = this.startCountDown() - gameState.time
+      // Ajustement du timer
+      if (gameState.time) {
+        this.countDownTime = this.startCountDown() - gameState.time
+      } else {
+        this.countDownTime = this.startCountDown()
+      }
       this.isGameOver = gameState.isGameOver || false
       this.startTime = Date.now() - gameState.time
       this.$nextTick(() => {
@@ -266,7 +288,7 @@ export default {
     async handleCancel() {
       try {
         this.$refs.countDown?.abort()
-        this.countDownTime -= this.$refs.countDown.getCurrentTime()
+        this.updateElapsedTime()
         this.isGameOver = true
         this.infoMessage = 'Vous avez abandonné la partie.'
         this.infoVisible = true

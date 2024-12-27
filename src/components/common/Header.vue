@@ -66,7 +66,7 @@
           <span class="text-md pt-1">{{ bestPlayer.username }} 🥇</span>
           <span class="text-xs">
             {{ bestPlayer.points }} points -
-            {{ secondsToDayjs(bestPlayer.time) }}
+            {{ millisecondsToDayjs(bestPlayer.time) }}
           </span>
         </div>
       </div>
@@ -80,11 +80,12 @@ import { useCollection } from 'vuefire'
 import { collection, query, orderBy, limit, where } from 'firebase/firestore'
 import { House, Gamepad2, History } from 'lucide-vue-next'
 import { useFirestore } from 'vuefire'
-import { secondsToDayjs } from '@utils/dateUtils'
+import { millisecondsToDayjs } from '@utils/dateUtils'
 import dayjs from 'dayjs'
 
 export default {
   name: 'Header',
+  methods: { millisecondsToDayjs },
   components: {
     House,
     Gamepad2,
@@ -109,7 +110,7 @@ export default {
 
     return {
       bestPlayer,
-      secondsToDayjs,
+      millisecondsToDayjs,
     }
   },
 }

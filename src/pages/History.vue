@@ -96,7 +96,7 @@
                 Points: <strong>{{ game.points }}</strong>
               </p>
               <p>
-                Temps: <strong>{{ secondsToDayjs(game.time) }}</strong>
+                Temps: <strong>{{ millisecondsToDayjs(game.time) }}</strong>
               </p>
             </div>
           </li>
@@ -128,7 +128,7 @@
 import { mapGetters } from 'vuex'
 import WordGrid, { CellType } from '@/components/game/WordGrid.vue'
 import { nextTick } from 'vue'
-import { formatTitle, formatDate, secondsToDayjs } from '@/utils/dateUtils'
+import { formatTitle, formatDate, millisecondsToDayjs } from '@/utils/dateUtils'
 
 export default {
   name: 'History',
@@ -245,7 +245,7 @@ export default {
         const nbSeconds = game.time
         return acc + nbSeconds
       }, 0)
-      return secondsToDayjs(totalSeconds)
+      return millisecondsToDayjs(totalSeconds)
     },
 
     /**
@@ -267,7 +267,7 @@ export default {
   methods: {
     formatTitle,
     formatDate,
-    secondsToDayjs,
+    millisecondsToDayjs,
 
     /**
      * Selects a game based on the provided index.
