@@ -43,7 +43,7 @@ export default {
      * @returns {number}
      */
     getCurrentTime() {
-      return this.countDownTime
+      return this.startCount
     },
   },
 }

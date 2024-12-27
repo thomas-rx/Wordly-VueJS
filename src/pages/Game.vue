@@ -47,8 +47,7 @@ import Keyboard from '@/components/game/Keyboard.vue'
 import InfoBox from '@/components/game/InfoBox.vue'
 import keyboardMixin from '@/utils/keyboardMixin.js'
 import confettiMixin from '@/utils/confettiMixin.js'
-import { mapActions, mapState, mapGetters } from 'vuex'
-import Footer from '@/components/common/Footer.vue'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import { getDailyWord } from '@/api/word'
 import CountDown from '@/components/game/CountDown.vue'
 import countDownMixin from '@utils/countDownMixin'
@@ -76,7 +75,7 @@ export default {
       isGameOver: false,
       isLoading: true,
       keyStates: {},
-      countDownTime : 1000
+      countDownTime :this.$store.state.games.currentGame?.time || this.startCountDown(),
     }
   },
   computed: {
@@ -91,10 +90,10 @@ export default {
     if (gameState && !gameState.isGameOver) {
       this.restoreGameState(gameState)
     } else {
-      this.startNewGame()
-      if (this.$refs.countDown) {
-        this.countDownTime = this.startCountDown()
-      }
+      await this.startNewGame()
+      // if (this.$refs.countDown) {
+      //   this.countDownTime = this.startCountDown()
+      // }
     }
   },
   methods: {
@@ -111,6 +110,7 @@ export default {
      * to the console. If an error occurs, it is caught and logged to the console.
      */
     async recordGameInHistory(isWin) {
+      const elapsedTime = this.startCountDown() - this.countDownTime
       const gameData = {
         word: this.word.toUpperCase(),
         attempts: this.attempts.map((guess) => ({
@@ -118,7 +118,7 @@ export default {
           result: guess === this.word.toUpperCase() ? 'correct' : 'incorrect',
         })),
         result: isWin ? 'win' : 'lose',
-        time: this.countDownTime,
+        time: elapsedTime,
         username: this.getUsername,
         points:
           Math.max(
@@ -153,6 +153,7 @@ export default {
         this.currentColumn = 1
         this.attempts = []
         this.isGameOver = false
+        this.countDownTime = this.startCountDown();
         this.$refs.wordGrid.clearGrid()
         this.saveGameState()
       } catch (error) {
@@ -188,8 +189,8 @@ export default {
      * Saves the current game state by dispatching an action to the Vuex store.
      */
     saveGameState() {
-      // Save the game state after 2 seconds (to allow animations to finish)
       setTimeout(() => {
+        const elapsedTime = this.startCountDown() - this.countDownTime
         const gameState = {
           currentRow: this.currentRow,
           currentColumn: this.currentColumn,
@@ -198,11 +199,12 @@ export default {
           cellValues: this.$refs.wordGrid.cellValues,
           cellStyles: this.$refs.wordGrid.cellStyles,
           isGameOver: this.isGameOver,
-          startTime: this.$refs.countDown.getCurrentTime(),
-        }
+          time: elapsedTime,
+          // startTime: this.$refs.countDown.getCurrentTime(),
+        };
 
-        this.$store.dispatch('games/saveCurrentGame', gameState)
-      }, 1000)
+        this.$store.dispatch("games/saveCurrentGame", gameState);
+      }, 1000);
     },
 
     /**
@@ -232,10 +234,11 @@ export default {
       this.currentRow = gameState.currentRow
       this.currentColumn = gameState.currentColumn
       this.word = gameState.word
+      this.word = gameState.word
       this.attempts = gameState.attempts
-      this.countDownTime = gameState.time
+      this.countDownTime = this.startCountDown() - gameState.time
       this.isGameOver = gameState.isGameOver || false
-      this.startTime = this.startCountDown() - gameState.time
+      this.startTime = Date.now() - gameState.time
       this.$nextTick(() => {
         Object.keys(gameState.cellValues).forEach((cellId) => {
           const value = gameState.cellValues[cellId]
@@ -252,16 +255,16 @@ export default {
      */
     async handleCancel() {
       try {
-        this.$refs.countDown.abort()
+        this.$refs.countDown?.abort()
         this.isGameOver = true
         this.infoMessage = 'Vous avez abandonné la partie.'
         this.infoVisible = true
         this.saveGameState()
-        this.recordGameInHistory(false)
+        await this.recordGameInHistory(false)
       } catch (error) {
         console.error('Error cancelling the game:', error)
         this.infoMessage =
-            "Une erreur s'est produite lors de la tentative d'annulation de la partie."
+          "Une erreur s'est produite lors de la tentative d'annulation de la partie."
         this.infoVisible = true
       }
     },
@@ -292,7 +295,7 @@ export default {
         this.infoMessage = 'Temps écoulé ! Vous avez perdu.'
         this.infoVisible = true
 
-        // Sauvegarder l'état final et enregistrer la défaite
+        // Save the final state and record the defeat
         this.saveGameState()
         this.recordGameInHistory(false)
       }
