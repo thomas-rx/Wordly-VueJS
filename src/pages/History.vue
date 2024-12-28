@@ -238,16 +238,15 @@ export default {
     /**
      * Calculates the total time played by summing up the time of each game in the games history.
      *
-     * @returns {Object} - A Day.js object representing the total time played.
+     * @returns {string} - A formatted string representing the total time played in "HH:mm:ss".
      */
     totalTimePlayed() {
-      const totalSeconds = this.gamesHistory.reduce((acc, game) => {
-        const nbSeconds = game.time
-        return acc + nbSeconds
-      }, 0)
-      return millisecondsToDayjs(totalSeconds)
+      const totalMilliseconds = this.gamesHistory.reduce((acc, game) => {
+        const nbMilliseconds = game.time; // Assume `game.time` is in milliseconds
+        return acc + nbMilliseconds;
+      }, 0);
+      return millisecondsToDayjs(totalMilliseconds); // Formats to "HH:mm:ss"
     },
-
     /**
      * Method to retrieve the username.
      *

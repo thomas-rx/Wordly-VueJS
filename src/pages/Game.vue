@@ -111,17 +111,7 @@ export default {
      */
     updateElapsedTime() {
       if (this.$refs.countDown) {
-        this.elapsedTime =
-          this.startCountDown() - this.$refs.countDown.getCurrentTime()
-        console.log(this.elapsedTime)
-        if (this.elapsedTime < 0 || isNaN(this.elapsedTime)) {
-          console.warn(
-            'Elapsed time is invalid. Check startCountDown and countDownTime values.',
-          )
-        } else {
-          console.log(`Elapsed time recorded: ${this.elapsedTime}`)
-          console.log(`start countdown ${this.startCountDown()}`)
-        }
+        this.elapsedTime = this.$refs.countDown.getCurrentTime()
       }
     },
     /**

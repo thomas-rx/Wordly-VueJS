@@ -13,13 +13,13 @@
 </template>
 
 <script>
-import VueCountdown from '@chenfengyuan/vue-countdown' // Import du composant
+import VueCountdown from '@chenfengyuan/vue-countdown'
 import countDownMixin from '@utils/countDownMixin'
 
 export default {
   name: 'CountDown',
   components: {
-    VueCountdown, // Enregistrement du composant
+    VueCountdown,
   },
   mixins: [countDownMixin],
   props: {
@@ -30,7 +30,12 @@ export default {
   },
   methods: {
     /**
+     * Stops the countdown timer.
      *
+     * This method calls the `abort` function of the countdown component, stopping
+     * the timer immediately. It is useful for scenarios where the countdown
+     * needs to be halted before completion, such as when the game is canceled
+     * or a user navigates away from the page.
      */
     abort() {
       this.$refs.countdown.abort()
@@ -41,13 +46,8 @@ export default {
      * @returns {number} - The interval value representing the time elapsed in milliseconds.
      */
     getCurrentTime() {
-      console.log(`ce que je retourne dans get current time ${this.startCountDown() - this.$refs.countdown.interval}`)
       return this.startCountDown() - this.$refs.countdown.totalMilliseconds
     },
   },
 }
 </script>
-
-<style scoped>
-/* Ajoutez des styles spécifiques au composant si nécessaire */
-</style>

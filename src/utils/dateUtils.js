@@ -49,14 +49,14 @@ export function formatDateTime(timestamp) {
 }
 
 /**
- * Converts milliseconds to a human-readable format (days, hh:mm:ss).
+ * Converts milliseconds to a human-readable format (hh:mm:ss).
  * @param {number} milliseconds - The total milliseconds to format.
  * @returns {string} The formatted time string.
  */
 export function millisecondsToDayjs(milliseconds) {
-  const durationObj = dayjs.duration(milliseconds, 'milliseconds');
-  const days = Math.floor(durationObj.asDays());
-  const time = durationObj.format('HH:mm:ss');
-  return `${days} days, ${time}`;
+  const durationObj = dayjs.duration(milliseconds, 'milliseconds')
+  const hours = String(Math.floor(durationObj.asHours())).padStart(2, '0')
+  const minutes = String(durationObj.minutes()).padStart(2, '0')
+  const seconds = String(durationObj.seconds()).padStart(2, '0')
+  return `${hours}:${minutes}:${seconds}`
 }
-
