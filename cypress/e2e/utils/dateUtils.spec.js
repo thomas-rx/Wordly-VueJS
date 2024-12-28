@@ -24,10 +24,9 @@ describe('Testing dateUtils.js functions', () => {
     const result = formatDate(date)
     expect(result).to.equal('27/11/2024')
   })
-
-  it('Converts milliseconds to human-readable format with days (millisecondsToDayjs)', () => {
+  it('Converts milliseconds to human-readable format with hours (millisecondsToDayjs)', () => {
     const milliseconds = 172800000 + 3661000 // 2 days, 1 hour, 1 minute, 1 second
     const result = millisecondsToDayjs(milliseconds)
-    expect(result).to.equal('2 days, 01:01:01')
+    expect(result).to.equal('49:01:01')
   })
 })

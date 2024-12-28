@@ -95,6 +95,9 @@ export default {
       await this.startNewGame()
     }
   },
+  beforeUnmount() {
+    this.updateElapsedTime()
+  },
   methods: {
     /**
      * Updates the `elapsedTime` property based on the current state of the countdown timer.
@@ -217,7 +220,6 @@ export default {
           cellStyles: this.$refs.wordGrid.cellStyles,
           isGameOver: this.isGameOver,
           time: this.elapsedTime,
-          // startTime: this.$refs.countDown.getCurrentTime(),
         }
 
         this.$store.dispatch('games/saveCurrentGame', gameState)
@@ -255,9 +257,10 @@ export default {
       this.attempts = gameState.attempts
       // Ajustement du timer
       if (gameState.time) {
-        this.countDownTime = this.startCountDown() - gameState.time
+        this.elapsedTime = this.countDownTime - gameState.time
+        console.log(`elapsed time calculé dans le restore game ${this.startCountDown() - gameState.time}`)
       } else {
-        this.countDownTime = this.startCountDown()
+        this.elapsedTime = this.countDownTime
       }
       this.isGameOver = gameState.isGameOver || false
       this.startTime = Date.now() - gameState.time

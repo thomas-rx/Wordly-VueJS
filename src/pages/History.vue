@@ -242,10 +242,10 @@ export default {
      */
     totalTimePlayed() {
       const totalMilliseconds = this.gamesHistory.reduce((acc, game) => {
-        const nbMilliseconds = game.time; // Assume `game.time` is in milliseconds
-        return acc + nbMilliseconds;
-      }, 0);
-      return millisecondsToDayjs(totalMilliseconds); // Formats to "HH:mm:ss"
+        const nbMilliseconds = game.time // Assume `game.time` is in milliseconds
+        return acc + nbMilliseconds
+      }, 0)
+      return millisecondsToDayjs(totalMilliseconds) // Formats to "HH:mm:ss"
     },
     /**
      * Method to retrieve the username.
