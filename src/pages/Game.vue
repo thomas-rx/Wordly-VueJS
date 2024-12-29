@@ -76,7 +76,8 @@ export default {
       isLoading: true,
       keyStates: {},
       countDownTime:
-        this.$store.state.games.currentGame?.time || this.startCountDown(),
+        this.startCountDown() - this.$store.state.games.currentGame?.time ||
+        this.startCountDown(),
       elapsedTime: 0,
     }
   },
@@ -95,8 +96,10 @@ export default {
       await this.startNewGame()
     }
   },
-  beforeUnmount() {
+  beforeRouteLeave(_, __, next) {
     this.updateElapsedTime()
+    this.saveGameState()
+    next()
   },
   methods: {
     /**
@@ -258,7 +261,6 @@ export default {
       // Ajustement du timer
       if (gameState.time) {
         this.elapsedTime = this.countDownTime - gameState.time
-        console.log(`elapsed time calculé dans le restore game ${this.startCountDown() - gameState.time}`)
       } else {
         this.elapsedTime = this.countDownTime
       }
