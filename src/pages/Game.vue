@@ -71,7 +71,6 @@ export default {
       word: '',
       wordLength: 5,
       attempts: [],
-      startTime: null,
       isGameOver: false,
       isLoading: true,
       keyStates: {},
@@ -86,7 +85,6 @@ export default {
     ...mapGetters('user', ['getUsername']),
   },
   async mounted() {
-    this.startTime = Date.now()
     const gameState = await this.loadCurrentGame()
     this.isLoading = false
     await this.$nextTick()
@@ -219,8 +217,12 @@ export default {
           currentColumn: this.currentColumn,
           word: this.word,
           attempts: this.attempts,
-          cellValues: this.$refs.wordGrid.cellValues,
-          cellStyles: this.$refs.wordGrid.cellStyles,
+          cellValues: this.$refs.wordGrid
+            ? this.$refs.wordGrid.cellValues
+            : this.$store.state.games.currentGame?.cellValues,
+          cellStyles: this.$refs.wordGrid
+            ? this.$refs.wordGrid.cellStyles
+            : this.$store.state.games.currentGame?.cellStyles,
           isGameOver: this.isGameOver,
           time: this.elapsedTime,
         }
@@ -265,7 +267,6 @@ export default {
         this.elapsedTime = this.countDownTime
       }
       this.isGameOver = gameState.isGameOver || false
-      this.startTime = Date.now() - gameState.time
       this.$nextTick(() => {
         Object.keys(gameState.cellValues).forEach((cellId) => {
           const value = gameState.cellValues[cellId]
