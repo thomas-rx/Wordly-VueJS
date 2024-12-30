@@ -2,19 +2,23 @@
   <div>
     <VueCountdown
       ref="countdown"
-      :time="this.startCount"
+      :time="startCount"
       :auto-start="true"
+      :interval="200"
       @end="onCountdownEnd"
       v-slot="{ minutes, seconds }"
     >
-      Time Remaining: {{ minutes }} minutes, {{ seconds }} seconds.
+      <span class="text-2xl font-bold">
+        {{ minutes.toString().padStart(2, '0') }}:
+        {{ seconds.toString().padStart(2, '0') }}
+      </span>
     </VueCountdown>
   </div>
 </template>
 
 <script>
 import VueCountdown from '@chenfengyuan/vue-countdown'
-import countDownMixin from '@utils/countDownMixin'
+import countDownMixin from '@/utils/countDownMixin'
 
 export default {
   name: 'CountDown',
@@ -30,23 +34,27 @@ export default {
   },
   methods: {
     /**
-     * Stops the countdown timer.
-     *
-     * This method calls the `abort` function of the countdown component, stopping
-     * the timer immediately. It is useful for scenarios where the countdown
-     * needs to be halted before completion, such as when the game is canceled
-     * or a user navigates away from the page.
+     * Aborts the countdown by calling the abort method on the countdown component reference.
      */
     abort() {
       this.$refs.countdown.abort()
     },
     /**
-     * Retrieves the time elapsed from the countdown timer.
+     * Calculates the current time elapsed since the countdown started.
      *
-     * @returns {number} - The interval value representing the time elapsed in milliseconds.
+     * @returns {number} The time elapsed in milliseconds.
      */
     getCurrentTime() {
-      return this.startCountDown() - this.$refs.countdown.totalMilliseconds
+      const totalDuration = this.startCountDown()
+      const timeLeft = this.$refs.countdown.totalMilliseconds
+      return totalDuration - timeLeft
+    },
+    /**
+     * Emits an 'end' event when the countdown ends.
+     * This method should be called when the countdown timer reaches zero.
+     */
+    onCountdownEnd() {
+      this.$emit('end')
     },
   },
 }
