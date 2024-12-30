@@ -56,7 +56,7 @@
       <!-- Actual Game History -->
       <div
         v-else-if="gamesHistory.length > 0"
-        class="space-y-2 pt-10 pb-[25%] w-full"
+        class="space-y-2 pt-10 mb-[75%] w-full"
       >
         <ul class="space-y-4">
           <li
