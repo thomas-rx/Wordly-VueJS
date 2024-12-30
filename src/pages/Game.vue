@@ -86,7 +86,7 @@ export default {
     ...mapGetters('user', ['getUsername']),
   },
   async mounted() {
-    const totalDuration = this.startCountDown()
+    const totalDuration = this.getDefaultRemainingTime()
     const gameState = await this.loadCurrentGame()
     if (gameState && gameState.isGameOver) {
       await this.$store.dispatch('games/clearCurrentGame')
@@ -140,7 +140,7 @@ export default {
             0,
             Math.floor(
               (this.wordLength * 1000 -
-                (this.startCountDown() - this.countDownTime)) /
+                (this.getDefaultRemainingTime() - this.countDownTime)) /
                 (this.attempts.length + 1),
             ),
           ) * (isWin ? 1 : 0),
@@ -166,7 +166,7 @@ export default {
         this.attempts = []
         this.isGameOver = false
         this.elapsedTime = 0
-        this.countDownTime = this.startCountDown()
+        this.countDownTime = this.getDefaultRemainingTime()
         if (this.$refs.wordGrid) {
           this.$refs.wordGrid.clearGrid()
         }

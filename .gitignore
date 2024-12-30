@@ -29,4 +29,3 @@ cypress/screenshots
 cypress/videos
 .vercel
 .secrets
-.cache

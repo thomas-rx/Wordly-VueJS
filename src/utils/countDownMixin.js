@@ -1,17 +1,12 @@
 export default {
   methods: {
     /**
-     * Set up the countDown just before the game starts
+     * Returns the default remaining time in milliseconds.
+     *
+     * @returns {number} The default remaining time in milliseconds (10 minutes).
      */
-    startCountDown() {
-      return 600000
-    },
-    /**
-     * Callback pour l'événement "end"
-     */
-    onCountdownEnd() {
-      console.log('Le compte à rebours est terminé.')
-      this.$emit('end')
+    getDefaultRemainingTime() {
+      return 10 * 1000 * 60 // 10 minutes
     },
   },
 }
