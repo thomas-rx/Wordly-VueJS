@@ -210,23 +210,24 @@ export default {
      * Saves the current game state by dispatching an action to the Vuex store.
      */
     saveGameState() {
+      this.updateElapsedTime()
+      const gameState = {
+        currentRow: this.currentRow,
+        currentColumn: this.currentColumn,
+        word: this.word,
+        attempts: this.attempts,
+        cellValues: this.$refs.wordGrid
+          ? this.$refs.wordGrid.cellValues
+          : this.$store.state.games.currentGame?.cellValues,
+        cellStyles: this.$refs.wordGrid
+          ? this.$refs.wordGrid.cellStyles
+          : this.$store.state.games.currentGame?.cellStyles,
+        isGameOver: this.isGameOver,
+        time: this.elapsedTime,
+      }
+      // Sauvegarde rapide locale
+      this.$store.commit('games/setCurrentGame', gameState)
       setTimeout(() => {
-        this.updateElapsedTime()
-        const gameState = {
-          currentRow: this.currentRow,
-          currentColumn: this.currentColumn,
-          word: this.word,
-          attempts: this.attempts,
-          cellValues: this.$refs.wordGrid
-            ? this.$refs.wordGrid.cellValues
-            : this.$store.state.games.currentGame?.cellValues,
-          cellStyles: this.$refs.wordGrid
-            ? this.$refs.wordGrid.cellStyles
-            : this.$store.state.games.currentGame?.cellStyles,
-          isGameOver: this.isGameOver,
-          time: this.elapsedTime,
-        }
-
         this.$store.dispatch('games/saveCurrentGame', gameState)
       }, 1000)
     },
