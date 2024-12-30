@@ -8,12 +8,14 @@
       v-if="!isLoading"
       class="z-10 justify-center flex flex-col items-center"
     >
-      <CountDown
-        id="timer"
-        ref="countDown"
-        :startCount="this.countDownTime"
-        @end="handleCountdownEnd"
-      ></CountDown>
+      <div class="mt-2">
+        <CountDown
+          id="timer"
+          ref="countDown"
+          :startCount="countDownTime"
+          @end="handleCountdownEnd"
+        />
+      </div>
       <WordGrid
         ref="wordGrid"
         :rows="maxTries"
@@ -27,8 +29,8 @@
         :keyStates="keyStates"
         @key-press="handleKeyPress"
       />
-      <button v-if="!isGameOver" @click="handleCancel" class="mt-2">
-        <span class="text-red-600 underline">Abandonner la partie</span>
+      <button v-if="!isGameOver" @click="handleCancel">
+        <span class="underline text-sm">Abandonner la partie</span>
       </button>
 
       <RouterLink
@@ -51,7 +53,7 @@ import confettiMixin from '@/utils/confettiMixin.js'
 import { mapActions, mapGetters, mapState } from 'vuex'
 import { getDailyWord } from '@/api/word'
 import CountDown from '@/components/game/CountDown.vue'
-import countDownMixin from '@utils/countDownMixin'
+import countDownMixin from '@/utils/countDownMixin'
 
 export default {
   components: {
@@ -75,10 +77,8 @@ export default {
       isGameOver: false,
       isLoading: true,
       keyStates: {},
-      countDownTime:
-        this.startCountDown() - this.$store.state.games.currentGame?.time ||
-        this.startCountDown(),
       elapsedTime: 0,
+      countDownTime: 0,
     }
   },
   computed: {
@@ -86,13 +86,24 @@ export default {
     ...mapGetters('user', ['getUsername']),
   },
   async mounted() {
+    const totalDuration = this.startCountDown()
     const gameState = await this.loadCurrentGame()
-    this.isLoading = false
-    await this.$nextTick()
-    if (gameState && !gameState.isGameOver) {
+    if (gameState && gameState.isGameOver) {
+      await this.$store.dispatch('games/clearCurrentGame')
+      await this.startNewGame()
+      this.countDownTime = totalDuration
+      this.isLoading = false
+    } else if (gameState && !gameState.isGameOver) {
+      this.elapsedTime = gameState.time || 0
+      this.countDownTime = totalDuration - this.elapsedTime
+      if (this.countDownTime < 0) this.countDownTime = 0
+      this.isLoading = false
+      await this.$nextTick()
       this.restoreGameState(gameState)
     } else {
       await this.startNewGame()
+      this.countDownTime = totalDuration
+      this.isLoading = false
     }
   },
   beforeRouteLeave(_, __, next) {
@@ -101,24 +112,6 @@ export default {
     next()
   },
   methods: {
-    /**
-     * Updates the `elapsedTime` property based on the current state of the countdown timer.
-     *
-     * This method retrieves the current remaining time from the `CountDown` component and
-     * calculates the elapsed time by subtracting it from the total countdown duration (`startCountDown`).
-     * It ensures that the elapsed time is updated without modifying the initial countdown time used as a prop.
-     *
-     * Usage:
-     * Call this method before saving the game state or recording the game in the history
-     * to ensure the elapsed time is accurate.
-     *
-     * @returns {void}
-     */
-    updateElapsedTime() {
-      if (this.$refs.countDown) {
-        this.elapsedTime = this.$refs.countDown.getCurrentTime()
-      }
-    },
     /**
      * Records the current game in the history.
      *
@@ -152,15 +145,12 @@ export default {
             ),
           ) * (isWin ? 1 : 0),
       }
-
       try {
         await this.$store.dispatch('games/addGame', gameData)
-        console.log('Game recorded successfully!')
       } catch (error) {
         console.error('Error recording game:', error)
       }
     },
-
     /**
      * Starts a new game by fetching the daily word and initializing game state.
      *
@@ -169,20 +159,22 @@ export default {
      */
     async startNewGame() {
       try {
+        await this.$store.dispatch('games/clearCurrentGame')
         this.word = await getDailyWord()
-        console.log('Daily word loaded:', this.word)
         this.currentRow = 1
         this.currentColumn = 1
         this.attempts = []
         this.isGameOver = false
+        this.elapsedTime = 0
         this.countDownTime = this.startCountDown()
-        this.$refs.wordGrid.clearGrid()
+        if (this.$refs.wordGrid) {
+          this.$refs.wordGrid.clearGrid()
+        }
         this.saveGameState()
       } catch (error) {
         console.error('Error while starting a new game:', error)
       }
     },
-
     /**
      * Handles the verification of the guessed word.
      * If the word is correctly guessed or the maximum number of tries is exceeded,
@@ -206,7 +198,6 @@ export default {
         }
       }
     },
-
     /**
      * Saves the current game state by dispatching an action to the Vuex store.
      */
@@ -226,13 +217,11 @@ export default {
         isGameOver: this.isGameOver,
         time: this.elapsedTime,
       }
-      // Sauvegarde rapide locale
       this.$store.commit('games/setCurrentGame', gameState)
       setTimeout(() => {
         this.$store.dispatch('games/saveCurrentGame', gameState)
       }, 1000)
     },
-
     /**
      * Asynchronously loads the current game state by dispatching the 'games/loadCurrentGame' action
      * from the Vuex store.
@@ -242,7 +231,6 @@ export default {
     async loadCurrentGame() {
       return await this.$store.dispatch('games/loadCurrentGame')
     },
-
     /**
      * Restores the game state from a given gameState object.
      *
@@ -260,25 +248,23 @@ export default {
       this.currentRow = gameState.currentRow
       this.currentColumn = gameState.currentColumn
       this.word = gameState.word
-      this.word = gameState.word
       this.attempts = gameState.attempts
-      // Ajustement du timer
-      if (gameState.time) {
-        this.elapsedTime = this.countDownTime - gameState.time
-      } else {
-        this.elapsedTime = this.countDownTime
-      }
       this.isGameOver = gameState.isGameOver || false
       this.$nextTick(() => {
-        Object.keys(gameState.cellValues).forEach((cellId) => {
-          const value = gameState.cellValues[cellId]
-          const style = gameState.cellStyles[cellId]
-          this.$refs.wordGrid.setCellValue(cellId, value)
-          this.$refs.wordGrid.cellStyles[cellId] = style
-        })
+        if (
+          this.$refs.wordGrid &&
+          gameState.cellValues &&
+          gameState.cellStyles
+        ) {
+          Object.keys(gameState.cellValues).forEach((cellId) => {
+            const value = gameState.cellValues[cellId]
+            const style = gameState.cellStyles[cellId]
+            this.$refs.wordGrid.setCellValue(cellId, value)
+            this.$refs.wordGrid.cellStyles[cellId] = style
+          })
+        }
       })
     },
-
     /**
      * Handles the cancellation of the current game.
      * It clears the current game state and resets relevant data properties.
@@ -299,7 +285,6 @@ export default {
         this.infoVisible = true
       }
     },
-
     /**
      * Updates the state of a key based on the provided letter and state.
      *
@@ -314,24 +299,36 @@ export default {
         console.warn('Invalid key state update:', { letter, state })
         return
       }
-
       if (!this.keyStates[letter] || this.keyStates[letter] !== 'correct') {
         this.keyStates[letter] = state
       }
     },
+    /**
+     * Handles the end of the countdown timer.
+     * If the game is not already over, it sets the game state to over,
+     * displays a message indicating that the time has run out and the player has lost,
+     * makes the info message visible, saves the current game state,
+     * and records the game result in the history as a loss.
+     */
     handleCountdownEnd() {
-      console.log('ended')
       if (!this.isGameOver) {
         this.isGameOver = true
         this.infoMessage = 'Temps écoulé ! Vous avez perdu.'
         this.infoVisible = true
-
-        // Save the final state and record the defeat
         this.saveGameState()
         this.recordGameInHistory(false)
       }
     },
-
+    /**
+     * Updates the elapsed time by retrieving the current time from the countdown component.
+     * If the countdown component reference exists, it sets the elapsedTime to the current time
+     * obtained from the countdown component.
+     */
+    updateElapsedTime() {
+      if (this.$refs.countDown) {
+        this.elapsedTime = this.$refs.countDown.getCurrentTime()
+      }
+    },
     ...mapActions('games', [
       'loadCurrentGame',
       'saveCurrentGame',
