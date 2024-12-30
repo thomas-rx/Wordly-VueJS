@@ -106,11 +106,6 @@ export default {
       this.isLoading = false
     }
   },
-  beforeRouteLeave(_, __, next) {
-    this.updateElapsedTime()
-    this.saveGameState()
-    next()
-  },
   methods: {
     /**
      * Records the current game in the history.
@@ -170,7 +165,6 @@ export default {
         if (this.$refs.wordGrid) {
           this.$refs.wordGrid.clearGrid()
         }
-        this.saveGameState()
       } catch (error) {
         console.error('Error while starting a new game:', error)
       }
@@ -188,39 +182,73 @@ export default {
         if (isWin || this.attempts.length >= this.maxTries) {
           this.recordGameInHistory(isWin)
           this.isGameOver = true
-          this.saveGameState()
           this.infoMessage = isWin ? 'Victoire !' : 'Défaite !'
           this.infoVisible = true
           this.$refs.countDown.abort()
           if (isWin) {
             this.showConfetti()
           }
+          this.saveGameState()
         }
       }
     },
     /**
-     * Saves the current game state by dispatching an action to the Vuex store.
+     * Retrieves the grid data, either from the wordGrid component reference or from the Vuex store.
+     *
+     * @returns {Object} An object containing cellValues and cellStyles.
+     * - If the wordGrid component reference is available, returns its cellValues and cellStyles.
+     * - Otherwise, returns the cellValues and cellStyles from the current game in the Vuex store.
      */
-    saveGameState() {
-      this.updateElapsedTime()
-      const gameState = {
+    getGridData() {
+      if (this.$refs.wordGrid) {
+        return {
+          cellValues: this.$refs.wordGrid.cellValues,
+          cellStyles: this.$refs.wordGrid.cellStyles,
+        }
+      }
+      return {
+        cellValues: this.$store.state.games.currentGame?.cellValues,
+        cellStyles: this.$store.state.games.currentGame?.cellStyles,
+      }
+    },
+    /**
+     * Retrieves the current state of the game.
+     *
+     * @returns {Object} The current game state, including:
+     * - currentRow {number}: The current row index.
+     * - currentColumn {number}: The current column index.
+     * - word {string}: The current word being guessed.
+     * - attempts {number}: The number of attempts made.
+     * - cellValues {Array}: The values of the cells in the grid.
+     * - cellStyles {Array}: The styles of the cells in the grid.
+     * - isGameOver {boolean}: Whether the game is over.
+     * - time {number}: The elapsed time since the game started.
+     */
+    getCurrentGameState() {
+      const { cellValues, cellStyles } = this.getGridData()
+      return {
         currentRow: this.currentRow,
         currentColumn: this.currentColumn,
         word: this.word,
         attempts: this.attempts,
-        cellValues: this.$refs.wordGrid
-          ? this.$refs.wordGrid.cellValues
-          : this.$store.state.games.currentGame?.cellValues,
-        cellStyles: this.$refs.wordGrid
-          ? this.$refs.wordGrid.cellStyles
-          : this.$store.state.games.currentGame?.cellStyles,
+        cellValues,
+        cellStyles,
         isGameOver: this.isGameOver,
         time: this.elapsedTime,
       }
-      this.$store.commit('games/setCurrentGame', gameState)
+    },
+    /**
+     * Saves the current game state after updating the elapsed time.
+     * The game state is committed to the Vuex store and dispatched to be saved.
+     * The save operation is delayed by 2 seconds using setTimeout (to allow animations to complete).
+     */
+    saveGameState() {
+      this.updateElapsedTime()
       setTimeout(() => {
+        const gameState = this.getCurrentGameState()
+        this.$store.commit('games/setCurrentGame', gameState)
         this.$store.dispatch('games/saveCurrentGame', gameState)
-      }, 1000)
+      }, 2000)
     },
     /**
      * Asynchronously loads the current game state by dispatching the 'games/loadCurrentGame' action

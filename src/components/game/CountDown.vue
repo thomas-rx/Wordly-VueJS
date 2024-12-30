@@ -45,7 +45,7 @@ export default {
      * @returns {number} The time elapsed in milliseconds.
      */
     getCurrentTime() {
-      const totalDuration = this.startCountDown()
+      const totalDuration = this.getDefaultRemainingTime()
       const timeLeft = this.$refs.countdown.totalMilliseconds
       return totalDuration - timeLeft
     },
