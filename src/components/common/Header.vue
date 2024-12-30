@@ -6,6 +6,7 @@
       <div class="hidden lg:flex space-x-3 w-1/3">
         <router-link to="/" class="button-link">
           <button
+            id="home"
             :class="{
               'bg-white text-black': $route.path === '/',
               'bg-slate-700': $route.path !== '/',

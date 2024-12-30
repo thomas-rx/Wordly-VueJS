@@ -6,11 +6,13 @@
     "serve": "vue-cli-service serve --port 4000",
     "build": "vue-cli-service build",
     "test": "cypress run",
+    "testKaituro": "CYPRESS_CACHE_FOLDER=./.cache/cypress npx cypress run",
     "test:headed": "cypress run --headed",
     "test:interactive": "cypress open",
     "clean": "rm -rf node_modules && rm -rf dist && rm -rf bun.lockb package-lock.json",
     "lint": "eslint src --fix",
-    "format": "prettier .  --write"
+    "format": "prettier .  --write",
+    "install:cypress": "CYPRESS_CACHE_FOLDER=./.cache/cypress npm install cypress"
   },
   "dependencies": {
     "@chenfengyuan/vue-countdown": "^2.1.2",
@@ -22,6 +24,7 @@
     "confetti-js": "^0.0.18",
     "core-js": "^3.39.0",
     "crypto-browserify": "^3.12.1",
+    "cypress": "^13.17.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "eslint-config-prettier": "^9.1.0",
@@ -47,7 +50,6 @@
     "add": "^2.0.6",
     "autoprefixer": "^10.4.20",
     "babel-eslint": "^10.1.0",
-    "cypress": "^13.17.0",
     "eslint": "^9.15.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-vue": "^9.31.0",

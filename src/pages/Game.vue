@@ -9,6 +9,7 @@
       class="z-10 justify-center flex flex-col items-center"
     >
       <CountDown
+        id="timer"
         ref="countDown"
         :startCount="this.countDownTime"
         @end="handleCountdownEnd"
