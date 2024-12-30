@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-6 flex justify-center px-5 pt-4">
+  <div class="flex justify-center px-5">
     <table class="border-separate border-spacing-2 text-xl">
       <tbody>
         <tr v-for="row in rows" :key="row">
